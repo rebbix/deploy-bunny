@@ -9,7 +9,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:options_yaml_path) { nil }
   _cset(:servers_yaml_path) { nil }
 
-  _cset(:environment_file_name) { "#{current_release}/app-env" }
+  _cset(:environment_file_name) { "app-env" }
   _cset(:environment_file_path) { "#{current_release}/#{environment_file_name}" }
   _cset(:in_valid_env)          { ". #{environment_file} && " }
 
@@ -29,7 +29,23 @@ Capistrano::Configuration.instance(:must_exist).load do
   before 'configuration:export_environment', 'configuration:export_deploy_information'
 
   namespace :configuration do
-    desc "Export environment variables to file"
+    desc <<-DESC
+      Export environment variables to file.
+      Loads configuration from configuration files \
+        located in :options_yaml_path and :servers_yaml_path \
+        and stores them in environment variables format to \
+        :environment_file_path.
+
+      You can also specify some deploy information to export \
+        in :deploy_information_to_export
+
+      Default values:
+        set :options_yaml_path, nil # you should specify it in your deploy.rb
+        set :servers_yaml_path, nil # you should specify it in your deploy.rb
+        set :environment_file_path, ":current_release/:environment_file_name"
+        set :environment_file_name, "app-env"
+        set :deploy_information_to_export, [:release_name]
+    DESC
     task :export_environment do
       find_servers(:roles => all_roles).each do |server|
         put(advanced_options.print_env(server), environment_file_path, hosts: server)
