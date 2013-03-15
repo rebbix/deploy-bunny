@@ -6,7 +6,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   if respond_to? :log_formatter
     log_formatter([
       { :match => /^nginx:/,           :color => :cyan, :priority => 10 },
-      { :match => /^nginx: restoring/, :color => :red,   :priority => 15 }
+      { :match => /^nginx: restoring/, :color => :red,  :priority => 15 }
     ])
   end
 
