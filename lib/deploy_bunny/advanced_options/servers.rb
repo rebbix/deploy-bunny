@@ -7,11 +7,16 @@ module DeployBunny
 
       def initialize(config_path=nil)
         @raw_configuration = parse_yaml_file(config_path)
+
+        @raw_configuration['bindings'] ||= {}
+        @raw_configuration['servers']  ||= {}
+        @raw_configuration['options']  ||= {}
+
         @cached_configuration = {}
       end
 
       def unique_roles
-        @unique_roles ||= @raw_configuration.fetch('servers', {}).keys
+        @unique_roles ||= @raw_configuration['servers'].keys
       end
 
       def with_role(role)
