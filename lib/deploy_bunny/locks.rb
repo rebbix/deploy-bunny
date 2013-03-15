@@ -17,10 +17,10 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   if respond_to? :log_formatter
     log_formatter([
-      { :match => /lock-system/,           :color => :magenta, :priority => 10 },
-      { :match => /lock-system: locked b/, :color => :green,   :priority => 15 },
-      { :match => /lock-system: locked -/, :color => :red,     :priority => 15 },
-      { :match => /lock-system: forcibly/, :color => :red,     :priority => 15 }
+      { :match => /^lock-system/,           :color => :magenta, :priority => 10 },
+      { :match => /^lock-system: locked b/, :color => :green,   :priority => 15 },
+      { :match => /^lock-system: locked -/, :color => :red,     :priority => 15 },
+      { :match => /^lock-system: forcibly/, :color => :red,     :priority => 15 }
     ])
   end
 
