@@ -1,4 +1,5 @@
 require File.expand_path('deploy_bunny/default_options', File.dirname(__FILE__))
+require File.expand_path('deploy_bunny/run_helpers', File.dirname(__FILE__))
 require File.expand_path('deploy_bunny/advanced_options', File.dirname(__FILE__))
 require File.expand_path('deploy_bunny/locks', File.dirname(__FILE__))
 require File.expand_path('deploy_bunny/logging', File.dirname(__FILE__))

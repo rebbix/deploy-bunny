@@ -11,7 +11,6 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   _cset(:environment_file_name) { "app-env" }
   _cset(:environment_file_path) { "#{current_release}/#{environment_file_name}" }
-  _cset(:in_valid_env)          { ". #{environment_file} && " }
 
   _cset(:advanced_servers) { DeployBunny::AdvancedOptions::Servers.new(servers_yaml_path) }
   _cset(:advanced_options) { DeployBunny::AdvancedOptions::Options.new(advanced_servers, options_yaml_path) }
