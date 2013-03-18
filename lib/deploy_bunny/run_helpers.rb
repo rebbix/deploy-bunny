@@ -4,7 +4,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     command = parameters.first
 
     bundle_cmd = fetch(:bundle_cmd, 'bundle')
-    bundle_exec_command = "#{bundle_cmd} exec"
+    cd_current_release = "cd #{options[:cd] || fetch(:current_release, './')} &&"
+    bundle_exec_command = "#{cd_current_release} #{bundle_cmd} exec"
 
     if command
       run("#{bundle_exec_command} #{command}", options, &block)

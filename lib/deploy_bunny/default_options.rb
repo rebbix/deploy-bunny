@@ -16,4 +16,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   # advanced options
   set(:servers_yaml_path) { 'config/servers.yml' }
   set(:options_yaml_path) { 'config/options.yml' }
+
+  # crontab
+  set(:crontab_provider) { :whenever }
 end
