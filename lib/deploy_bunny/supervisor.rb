@@ -82,7 +82,8 @@ Capistrano::Configuration.instance(:must_exist).load do
       Restart supervisord and workers running under it.
     DESC
     task :restart, :roles => supervisord_roles do
-      stop && start
+      stop
+      start
     end
 
     desc <<-DESC
