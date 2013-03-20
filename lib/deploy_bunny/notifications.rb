@@ -102,7 +102,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :notify_airbrake, :on_error => :continue do
         unless airbrake_api_key.nil? || airbrake_api_key.empty?
           api_key =        URI.encode_www_form_component(airbrake_api_key)
-          rails_env =      URI.encode_www_form_component(deploy_options.get_env_option(:environment))
+          rails_env =      URI.encode_www_form_component(fetch(:environment, 'production'))
           local_username = URI.encode_www_form_component(user)
           scm_repository = URI.encode_www_form_component(repository)
           scm_revision =   URI.encode_www_form_component(revision)

@@ -13,6 +13,9 @@ Capistrano::Configuration.instance(:must_exist).load do
   set(:keep_releases) { 25 }
   set(:ssh_options)   { {:forward_agent => true} }
 
+  # custom options
+  set(:environment) { (exists?(:advanced_options) && advanced_options[:environment]) || 'production' }
+
   # advanced options
   set(:servers_yaml_path) { 'config/servers.yml' }
   set(:options_yaml_path) { 'config/options.yml' }
