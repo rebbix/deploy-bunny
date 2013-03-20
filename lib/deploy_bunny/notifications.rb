@@ -1,4 +1,4 @@
-
+require 'net/http'
 # TODO: needs refactoring
 # Split to different files (per provider)
 # Make possible to turn on/off notifications
