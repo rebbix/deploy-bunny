@@ -1,4 +1,6 @@
 require 'net/http'
+require 'new_relic/recipes'
+
 # TODO: needs refactoring
 # Split to different files (per provider)
 # Make possible to turn on/off notifications
