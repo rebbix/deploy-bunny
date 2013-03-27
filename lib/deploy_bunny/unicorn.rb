@@ -4,7 +4,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:unicorn_config_file_path) { "#{unicorn_run_from_dir}/config/unicorn.rb" }
 
   _cset(:unicorn_roles)  { [:app] }
-  _cset(:unicorn_bin)    { 'unicorn_rails' }
+  _cset(:unicorn_bin)    { 'unicorn' }
   _cset(:unicorn_pid)    { "`cat #{unicorn_pid_file_path}`" }
 
   def unicorn_is_running?
