@@ -11,24 +11,26 @@ Capistrano::Configuration.instance(:must_exist).load do
     "[ -e #{unicorn_pid_file_path} ] && kill -0 #{unicorn_pid} > /dev/null 2>&1"
   end
 
-  def with_running_unicorn(break_on_else=false)
-    command = yield
+  def if_unicorn_is_running(cases={})
+    cases={
+      yes: "echo 'unicorn: status - running'; ps x -o pid,ppid,command | grep #{unicorn_pid} | grep -v grep;",
+      no: 'echo "unicorn: status - not running";'}.merge(cases)
 
     <<-END
-      set -x;
       if #{unicorn_is_running?}; then
-        #{command}
+        #{cases[:yes]}
       else
-        echo "unicorn: status - not running";
-        #{'exit 1;' if break_on_else}
+        #{cases[:no]}
       fi;
     END
   end
 
+  def unicorn_start_command
+    "#{app_env} #{bundle_exec} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D;"
+  end
+
   def kill_unicorn(signal)
-    with_running_unicorn do
-      "kill -s #{signal} #{unicorn_pid};"
-    end
+    if_unicorn_is_running(yes: "kill -s #{signal} #{unicorn_pid};")
   end
 
   if respond_to? :log_formatter
@@ -54,7 +56,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         :unicorn_bin    'unicorn'
     DESC
     task :start, :roles => unicorn_roles do
-      app_env "#{bundle_exec} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D"
+      run unicorn_start_command
     end
 
     desc <<-DESC
@@ -76,15 +78,25 @@ Capistrano::Configuration.instance(:must_exist).load do
       You should also take care about killing old master process.
     DESC
     task :soft_restart, :roles => unicorn_roles do
-      transaction do
-        on_rollback do
-          start
-        end
+      unicorn_restart_command = <<-END
+        kill -s USR2 #{unicorn_pid};
 
-        run(with_running_unicorn(true) do
-          "kill -s USR2 #{unicorn_pid};"
-        end)
-      end
+        number_of_loops=120;
+        while [ "$number_of_loops" -gt "0" ]; do
+          sleep 2;
+          echo "Waiting for old master to quit...";
+          number_of_loops=$(( $number_of_loops - 1 ));
+          if [ ! -f "#{unicorn_pid_file_path}.oldbin" ]; then exit 0; fi;
+        done;
+
+        echo "unicorn: old master process is not quiting" 1>&2 ;
+        exit 1;
+      END
+
+      run if_unicorn_is_running({
+        yes: unicorn_restart_command,
+        no: unicorn_start_command
+      })
     end
 
     desc <<-DESC
@@ -114,9 +126,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       Get information if unicorn is running.
     DESC
     task :status, :roles => unicorn_roles do
-      run(with_running_unicorn do
-        'echo "unicorn: status - running";'
-      end)
+      run if_unicorn_is_running
     end
   end
 end
