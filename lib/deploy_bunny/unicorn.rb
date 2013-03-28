@@ -1,5 +1,5 @@
 Capistrano::Configuration.instance(:must_exist).load do
-  _cset(:unicorn_run_from_dir)     { current_release }
+  _cset(:unicorn_run_from_dir)     { current_path }
   _cset(:unicorn_pid_file_path)    { "#{unicorn_run_from_dir}/tmp/pids/unicorn.pid" }
   _cset(:unicorn_config_file_path) { "#{unicorn_run_from_dir}/config/unicorn.rb" }
 
@@ -26,7 +26,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
   def unicorn_start_command
-    "#{app_env} #{bundle_exec} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D;"
+    "#{app_env} #{bundle_exec cd: unicorn_run_from_dir} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D;"
   end
 
   def kill_unicorn(signal)
