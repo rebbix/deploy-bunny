@@ -29,7 +29,11 @@ Capistrano::Configuration.instance(:must_exist).load do
   def unicorn_start_command
     <<-END
       echo 'unicorn: starting';
-      #{app_env} #{bundle_exec cd: unicorn_run_from_dir} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D;
+      export BUNDLE_GEMFILE="#{unicorn_run_from_dir}/Gemfile";
+      #{app_env} #{bundle_exec cd: unicorn_run_from_dir} #{unicorn_bin} \
+          -c #{unicorn_config_file_path} \
+          -E #{fetch(:environment, 'production')} \
+          -D;
     END
   end
 
