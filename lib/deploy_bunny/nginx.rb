@@ -46,7 +46,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         sudo "cp #{nginx_local_config_file_path} #{config_file}"
         reload
-        run "rm #{old_config_file}"
+        run "[ -f #{old_config_file} ] && rm #{old_config_file}"
       end
     end
 
