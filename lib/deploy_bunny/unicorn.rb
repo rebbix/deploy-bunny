@@ -12,9 +12,10 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
   def if_unicorn_is_running(cases={})
-    cases={
+    cases = {
       yes: "echo 'unicorn: status - running'; ps x -o pid,ppid,command | grep #{unicorn_pid} | grep -v grep;",
-      no: 'echo "unicorn: status - not running";'}.merge(cases)
+      no: 'echo "unicorn: status - not running";'
+    }.merge(cases)
 
     <<-END
       if #{unicorn_is_running?}; then
@@ -26,7 +27,30 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
   def unicorn_start_command
-    "#{app_env} #{bundle_exec cd: unicorn_run_from_dir} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D;"
+    <<-END
+      echo 'unicorn: starting';
+      #{app_env} #{bundle_exec cd: unicorn_run_from_dir} #{unicorn_bin} -c #{unicorn_config_file_path} -E #{fetch(:environment, 'production')} -D;
+    END
+  end
+
+  def wait_for_quit_or_timeout(pid, cases={}, timeout=120)
+    cases = {
+      quit: '',
+      timeout: 'echo "unicorn: old master process is not quiting" 1>&2 ;'
+    }.merge(cases)
+
+    <<-END
+      number_of_loops=#{timeout};
+      while [ "$number_of_loops" -gt "0" ]; do
+        sleep 1;
+        echo "unicorn: waiting for old master to quit...";
+        number_of_loops=$(( $number_of_loops - 1 ));
+        if [ ! -f "#{pid}" ]; then #{cases[:quit]} exit 0; fi;
+      done;
+
+      #{cases[:timeout]}
+      exit 1;
+    END
   end
 
   def kill_unicorn(signal)
@@ -80,17 +104,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :soft_restart, :roles => unicorn_roles do
       unicorn_restart_command = <<-END
         kill -s USR2 #{unicorn_pid};
-
-        number_of_loops=120;
-        while [ "$number_of_loops" -gt "0" ]; do
-          sleep 2;
-          echo "Waiting for old master to quit...";
-          number_of_loops=$(( $number_of_loops - 1 ));
-          if [ ! -f "#{unicorn_pid_file_path}.oldbin" ]; then exit 0; fi;
-        done;
-
-        echo "unicorn: old master process is not quiting" 1>&2 ;
-        exit 1;
+        #{wait_for_quit_or_timeout("#{unicorn_pid_file_path}.oldbin")}
       END
 
       run if_unicorn_is_running({
@@ -103,9 +117,17 @@ Capistrano::Configuration.instance(:must_exist).load do
       Restart unicorn by stopping old master process and starting new one.
     DESC
     task :hard_restart, :roles => unicorn_roles do
-      stop
-      sleep 2
-      start
+      unicorn_restart_command = <<-END
+        kill -s QUIT #{unicorn_pid};
+        #{wait_for_quit_or_timeout(unicorn_pid_file_path, {
+          quit: unicorn_start_command
+        })}
+      END
+
+      run if_unicorn_is_running({
+        yes: unicorn_restart_command,
+        no: unicorn_start_command
+      })
     end
 
     desc <<-DESC
