@@ -17,17 +17,18 @@ Capistrano::Configuration.instance(:must_exist).load do
       no: 'echo "unicorn: status - not running";'
     }.merge(cases)
 
-    <<-END
+    command = <<-END
       if #{unicorn_is_running?}; then
         #{cases[:yes]}
       else
         #{cases[:no]}
       fi;
     END
+    command.compact
   end
 
   def unicorn_start_command
-    <<-END
+    command = <<-END
       echo 'unicorn: starting';
       export BUNDLE_GEMFILE="#{unicorn_run_from_dir}/Gemfile";
       #{app_env} #{bundle_exec cd: unicorn_run_from_dir} #{unicorn_bin} \
@@ -35,6 +36,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           -E #{fetch(:environment, 'production')} \
           -D;
     END
+    command.compact
   end
 
   def wait_for_quit_or_timeout(pid, cases={}, timeout=120)
@@ -43,7 +45,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       timeout: 'echo "unicorn: old master process is not quiting" 1>&2 ;'
     }.merge(cases)
 
-    <<-END
+    command = <<-END
       number_of_loops=#{timeout};
       while [ "$number_of_loops" -gt "0" ]; do
         sleep 1;
@@ -55,16 +57,18 @@ Capistrano::Configuration.instance(:must_exist).load do
       #{cases[:timeout]}
       exit 1;
     END
+    command.compact
   end
 
   def kill_unicorn(signal)
-    if_unicorn_is_running(yes: "kill -s #{signal} #{unicorn_pid};")
+    if_unicorn_is_running(yes: "kill -s #{signal} #{unicorn_pid};").compact
   end
 
   if respond_to? :log_formatter
     log_formatter([
       { :match => /^unicorn:/,        :color => :cyan,    :priority => 10 },
-      { :match => /^unicorn: status/, :color => :magenta, :priority => 15 }
+      { :match => /^unicorn: status/, :color => :magenta, :priority => 15 },
+      { :match => /^unicorn: new ma/, :color => :red,     :priority => 15 }
     ])
   end
 
@@ -107,8 +111,14 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task :soft_restart, :roles => unicorn_roles do
       unicorn_restart_command = <<-END
-        kill -s USR2 #{unicorn_pid};
-        #{wait_for_quit_or_timeout("#{unicorn_pid_file_path}.oldbin")}
+        unicorn_old_pid=#{unicorn_pid};
+        kill -s USR2 $unicorn_old_pid;
+        #{wait_for_quit_or_timeout("#{unicorn_pid_file_path}.oldbin", {
+          quit: %(if [ "#{unicorn_pid}" -eq "$unicorn_old_pid" ]; then
+              echo 'unicorn: new master could not start, restored to old one';
+              exit 1;
+            fi;)
+        })}
       END
 
       run if_unicorn_is_running({
