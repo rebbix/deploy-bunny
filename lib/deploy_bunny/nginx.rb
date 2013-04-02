@@ -13,13 +13,13 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   namespace :nginx do
     desc <<-DESC
-      Copy :nginx_local_config_file_path to :nginx_config_file_path and reload nginx.
+      Copy :nginx_local_config_file_path to :nginx_dest_config_file_path and reload nginx.
       Uses transaction to return back old configuration file if copy/reload failed.
       Options:
         set :nginx_config_file_path, "/etc/nginx/sites-enabled/:application.conf"
           # global path to nginx configuration file for specific :application
 
-        set :nginx_local_config_file_path, ":current_release/config/nginx.conf"
+        set :nginx_local_config_file_path, ":nginx_release_dir/config/nginx.conf"
           # local path to nginx configuration of deployed application
           # usually this is generated with some rake task as part of deploy
 
