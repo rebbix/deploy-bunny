@@ -1,5 +1,4 @@
 require 'net/http'
-require 'new_relic/recipes'
 
 # TODO: needs refactoring
 # Split to different files (per provider)
@@ -53,6 +52,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       task :notify_newrelic, :on_error => :continue do
         unless newrelic_license_key.nil? || newrelic_license_key.empty?
+          require 'new_relic/recipes'
           newrelic_config = <<-TEMPLATE
             common: &default_settings
               license_key: '#{newrelic_license_key}'
