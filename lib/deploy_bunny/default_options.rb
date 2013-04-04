@@ -22,4 +22,9 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   # crontab
   set(:crontab_provider) { :whenever }
+
+  if exists? :assets_role
+    require File.expand_path('assets', File.dirname(__FILE__))
+    after 'deploy:assets:precompile', 'deploy:assets:share_manifests'
+  end
 end
