@@ -14,9 +14,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         By default :share_manifests_over => [:app]
       DESC
       task :share_manifests do
-        p find_servers(:roles => share_manifests_over)
         upload_to = find_servers(:roles => share_manifests_over) - find_servers(:roles => assets_role)
-        p upload_to
 
         upload_from = find_servers(:roles => assets_role).first
         unless upload_to.empty?
