@@ -46,7 +46,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         logger.info 'nginx: copying config file to needed location'
         sudo "cp -- #{new_config_file_path} #{dest_config_file_path}"
         reload
-        run "[ -f #{backup_config_file_path} ] && rm -- #{backup_config_file_path}"
+        run "[ -f #{backup_config_file_path} ] && rm -- #{backup_config_file_path}; true"
       end
     end
 
