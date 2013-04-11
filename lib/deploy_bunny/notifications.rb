@@ -2,9 +2,9 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   _cset(:notification_providers) do
     {
-      email:    -> { !emails_to_notify.empty? },
-      newrelic: -> { !newrelic_license_key.nil? && !newrelic_license_key.empty? },
-      airbrake: -> { !airbrake_api_key.nil? && !airbrake_api_key.empty? }
+      email:    -> { !fetch(:emails_to_notify, '').empty? },
+      newrelic: -> { !fetch(:newrelic_license_key, nil).nil? && !fetch(:newrelic_license_key, '').empty? },
+      airbrake: -> { !fetch(:airbrake_api_key, nil).nil? && !fetch(:airbrake_api_key, '').empty? }
     }.select{ |_, condition| condition.call }.keys
   end
 
