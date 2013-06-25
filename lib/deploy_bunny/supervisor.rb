@@ -9,7 +9,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:supervisord_roles)  { [:app] }
   _cset(:supervisord_pid)    { ['ps axo "%p:%a"',
                                 'grep "supervisord"',
-                                %(grep "#{supervisord_app_id}"),
+                                %(grep "#{supervisord_app_id}/"),
                                 'grep -v grep',
                                 'sed "s/:.*//"',
                                 'sed "s/\s*//"',
